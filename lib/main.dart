@@ -91,7 +91,10 @@ class _MyHomePageState extends State<MyHomePage> {
                   child: TextField(
                     maxLines: null,
                     controller: contentController,
-                    decoration: const InputDecoration(contentPadding: EdgeInsets.all(0), hintText: '请输入需要转换的json', border: InputBorder.none),
+                    decoration: const InputDecoration(
+                        contentPadding: EdgeInsets.all(0),
+                        hintText: '请输入需要转换的json',
+                        border: InputBorder.none),
                   ),
                 ),
                 Container(
@@ -123,14 +126,20 @@ class _MyHomePageState extends State<MyHomePage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 ElevatedButton(
-                  style: ElevatedButton.styleFrom(minimumSize: const Size(120, 50)),
+                  style: ElevatedButton.styleFrom(
+                      minimumSize: const Size(120, 50)),
                   onPressed: () {
                     try {
                       list.clear();
-                      createClass(contentController.text, classNameController.text.isNotEmpty ? classNameController.text.firstLetterToUpperCase : 'Model');
+                      createClass(
+                          contentController.text,
+                          classNameController.text.isNotEmpty
+                              ? classNameController.text.firstLetterToUpperCase
+                              : 'Model');
                       setState(() {});
                     } catch (err) {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('json 格式不对')));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('json 格式不对')));
                     }
                   },
                   child: const Text(
@@ -142,10 +151,12 @@ class _MyHomePageState extends State<MyHomePage> {
                   height: 20,
                 ),
                 ElevatedButton(
-                  style: ElevatedButton.styleFrom(minimumSize: const Size(120, 50)),
+                  style: ElevatedButton.styleFrom(
+                      minimumSize: const Size(120, 50)),
                   onPressed: () {
                     Clipboard.setData(ClipboardData(text: renderText(list)));
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('复制成功')));
+                    ScaffoldMessenger.of(context)
+                        .showSnackBar(const SnackBar(content: Text('复制成功')));
                   },
                   child: const Text(
                     '复制到剪切板',
@@ -211,21 +222,27 @@ class _MyHomePageState extends State<MyHomePage> {
       if (value is String) {
         temVar.write('String? $tempKey;\n');
         otherCs.write('$tempKey =json[\'$key\'];\n');
-        toJsonVar.write('data[\'$key\'] = $tempKey;');
+        toJsonVar.write('dataMap[\'$key\'] = $tempKey;');
+      } else if (value is bool) {
+        temVar.write('bool? $tempKey;\n');
+        otherCs.write('$tempKey =json[\'$key\'];\n');
+        toJsonVar.write('dataMap[\'$key\'] = $tempKey;');
       } else if (value is int) {
         otherCs.write('$tempKey =json[\'$key\'];\n');
         temVar.write('int? $tempKey;\n');
-        toJsonVar.write('data[\'$key\'] = $tempKey;');
+        toJsonVar.write('dataMap[\'$key\'] = $tempKey;');
       } else if (value is double) {
         otherCs.write('$tempKey =json[\'$key\'];\n');
         temVar.write('double? $tempKey;\n');
-        toJsonVar.write('data[\'$key\'] = $tempKey;');
+        toJsonVar.write('dataMap[\'$key\'] = $tempKey;');
       } else if (value is Map) {
         //创建实体类
-        createClass(json.encode(value), StringUtil.upperCaseFirstLetter(key));
+        createClass(json.encode(value), key.firstLetterToUpperCase);
         temVar.write('${key.firstLetterToUpperCase}? $tempKey;\n');
-        otherCs.write('$tempKey = json[\'$key\'] != null? ${key.firstLetterToUpperCase}.fromJson(json[\'$key\']):null;');
-        toJsonVar.write('if($tempKey != null){data[\'$key\']=this.$tempKey.toJson();}');
+        otherCs.write(
+            '$tempKey = json[\'$key\'] != null? ${key.firstLetterToUpperCase}.fromJson(json[\'$key\']):null;');
+        toJsonVar.write(
+            'if($tempKey != null){dataMap[\'$key\']=$tempKey?.toJson();}');
       } else if (value is List) {
         // 判断数组中第一个元素的类型
         // 确定List泛型
@@ -236,8 +253,13 @@ class _MyHomePageState extends State<MyHomePage> {
             generic = 'int';
           } else if (value[0] is double) {
             generic = 'double';
+          } else if (value[0] is bool) {
+            generic = 'bool';
+          } else if (value[0] is String) {
+            generic = 'String';
           } else if (value[0] is Map) {
-            generic = createClass(json.encode(value[0]), StringUtil.upperCaseFirstLetter(key));
+            generic =
+                createClass(json.encode(value[0]), key.firstLetterToUpperCase);
           }
           //
         }
@@ -265,9 +287,9 @@ class _MyHomePageState extends State<MyHomePage> {
     result.write('$className.fromJson(Map<String, dynamic> json){');
     result.write('$otherCs}');
     result.write('Map<String, dynamic> toJson() {');
-    result.write('final Map<String, dynamic> data = <String, dynamic>{};');
+    result.write('final Map<String, dynamic> dataMap = <String, dynamic>{};');
     result.write('$toJsonVar');
-    result.write('return data;');
+    result.write('return dataMap;');
     result.write('}}');
 
     list.add(result.toString());
