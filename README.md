@@ -37,7 +37,7 @@ Visit the live application at: https://invincible1996.github.io/json2dart/
    ```
 
 ## 📸 Screenshots
-![Application Screenshot](https://user-images.githubusercontent.com/22675676/133562214-51beb732-122c-4da3-9417-731d3dc9770f.png)
+![JSON to Dart Converter](screenshots/screen_shot.png)
 
 ## 🛠️ Built With
 - Flutter Web
