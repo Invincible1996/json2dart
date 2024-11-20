@@ -3,25 +3,21 @@ import 'dart:convert';
 import 'package:dart_style/dart_style.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:json2dart/extension/string_extension.dart';
-import 'package:json2dart/util/string_util.dart';
 import 'package:logger/logger.dart';
 
 var logger = Logger(
   printer: PrettyPrinter(
-      methodCount: 0,
-      // number of method calls to be displayed
-      errorMethodCount: 8,
-      // number of method calls if stacktrace is provided
-      lineLength: 120,
-      // width of the output
-      colors: true,
-      // Colorful log messages
-      printEmojis: true,
-      // Print an emoji for each log message
-      printTime: false // Should each log print contain a timestamp
-      ),
+    methodCount: 0,
+    // number of method calls to be displayed
+    errorMethodCount: 8,
+    // number of method calls if stacktrace is provided
+    lineLength: 120,
+    // width of the output
+    colors: true,
+    // Colorful log messages
+    printEmojis: true,
+  ),
 );
 
 var formatter = DartFormatter();
@@ -36,11 +32,17 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      debugShowCheckedModeBanner: false,
+      title: 'JSON to Dart Converter',
       theme: ThemeData(
         primarySwatch: Colors.blue,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF6750A4),
+          brightness: Brightness.light,
+        ),
+        useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Json to Dart with nullsafety'),
+      home: const MyHomePage(title: 'JSON to Dart Converter'),
     );
   }
 }
@@ -66,101 +68,183 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        title: Text(
+          widget.title,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        centerTitle: true,
+        elevation: 0,
       ),
       body: Row(
         children: [
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(
-                  height: 20,
-                ),
-                Container(
-                  margin: const EdgeInsets.only(top: 10, left: 10, right: 10),
-                  height: 450,
-                  padding: const EdgeInsets.all(5.0),
-                  decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(
-                        width: 1,
-                        color: const Color(0XFFE6E6E6),
-                      )),
-                  child: TextField(
-                    maxLines: null,
-                    controller: contentController,
-                    decoration: const InputDecoration(
-                        contentPadding: EdgeInsets.all(0),
-                        hintText: '请输入需要转换的json',
-                        border: InputBorder.none),
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  // height: 200,
-                  child: TextField(
-                    controller: classNameController,
-                    decoration: const InputDecoration(
-                      label: Text('请输入class名称'),
-                      border: OutlineInputBorder(),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Input JSON',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: Theme.of(context).colorScheme.onBackground,
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 12),
+                  Container(
+                    height: 450,
+                    padding: const EdgeInsets.all(16.0),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surface,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        width: 1,
+                        color: Theme.of(context)
+                            .colorScheme
+                            .outline
+                            .withOpacity(0.5),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: TextField(
+                      maxLines: null,
+                      controller: contentController,
+                      style: TextStyle(
+                        height: 1.5,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                      decoration: const InputDecoration(
+                        contentPadding: EdgeInsets.zero,
+                        hintText: 'Paste your JSON here...',
+                        border: InputBorder.none,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    'Class Name',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: Theme.of(context).colorScheme.onBackground,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: classNameController,
+                    decoration: InputDecoration(
+                      hintText: 'Enter class name',
+                      filled: true,
+                      fillColor: Theme.of(context).colorScheme.surface,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: Theme.of(context).colorScheme.outline,
+                        ),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .outline
+                              .withOpacity(0.5),
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: Theme.of(context).colorScheme.primary,
+                          width: 2,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            decoration: const BoxDecoration(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+            decoration: BoxDecoration(
               border: Border.symmetric(
                 vertical: BorderSide(
                   width: 1,
-                  color: Color(0XFFE6E6E6),
+                  color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
                 ),
               ),
             ),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                      minimumSize: const Size(120, 50)),
+                FilledButton(
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size(140, 56),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
                   onPressed: () {
                     try {
                       list.clear();
                       createClass(
-                          contentController.text,
-                          classNameController.text.isNotEmpty
-                              ? classNameController.text.firstLetterToUpperCase
-                              : 'Model');
+                        contentController.text,
+                        classNameController.text.isNotEmpty
+                            ? classNameController.text.firstLetterToUpperCase
+                            : 'Model',
+                      );
                       setState(() {});
                     } catch (err) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('json 格式不对')));
+                        SnackBar(
+                          content: const Text('Invalid JSON format'),
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      );
                     }
                   },
                   child: const Text(
-                    '转 换',
-                    style: TextStyle(fontSize: 16),
+                    'Convert',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                 ),
-                const SizedBox(
-                  height: 20,
-                ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                      minimumSize: const Size(120, 50)),
+                const SizedBox(height: 16),
+                FilledButton.tonal(
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size(140, 56),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
                   onPressed: () {
                     Clipboard.setData(ClipboardData(text: renderText(list)));
-                    ScaffoldMessenger.of(context)
-                        .showSnackBar(const SnackBar(content: Text('复制成功')));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: const Text('Copied to clipboard'),
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    );
                   },
                   child: const Text(
-                    '复制到剪切板',
-                    style: TextStyle(fontSize: 16),
+                    'Copy to Clipboard',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                 ),
               ],
@@ -168,11 +252,33 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
           Expanded(
             child: list.isNotEmpty
-                ? Padding(
-                    padding: const EdgeInsets.all(12.0),
+                ? Container(
+                    margin: const EdgeInsets.all(24.0),
+                    padding: const EdgeInsets.all(24.0),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surface,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        width: 1,
+                        color: Theme.of(context)
+                            .colorScheme
+                            .outline
+                            .withOpacity(0.5),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
                     child: SelectableText(
                       renderText(list),
-                      style: const TextStyle(height: 1.8),
+                      style: TextStyle(
+                        height: 1.8,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
                     ),
                   )
                 : const SizedBox.shrink(),
@@ -237,12 +343,17 @@ class _MyHomePageState extends State<MyHomePage> {
         toJsonVar.write('dataMap[\'$key\'] = $tempKey;');
       } else if (value is Map) {
         //创建实体类
-        createClass(json.encode(value), key.firstLetterToUpperCase);
-        temVar.write('${key.firstLetterToUpperCase}? $tempKey;\n');
-        otherCs.write(
-            '$tempKey = json[\'$key\'] != null? ${key.firstLetterToUpperCase}.fromJson(json[\'$key\']):null;');
-        toJsonVar.write(
-            'if($tempKey != null){dataMap[\'$key\']=$tempKey?.toJson();}');
+        createClass(
+            json.encode(value), '${key[0].toUpperCase()}${key.substring(1)}');
+        temVar.write("""${key[0].toUpperCase()}${key.substring(1)}? $tempKey;\n""");
+        otherCs.write("""
+        $tempKey = json['$key'] != null 
+            ? ${key[0].toUpperCase()}${key.substring(1)}.fromJson(json['$key'])
+            : null;""");
+        toJsonVar.write("""
+        if ($tempKey != null) {
+          dataMap['$key'] = $tempKey?.toJson();
+        }""");
       } else if (value is List) {
         // 判断数组中第一个元素的类型
         // 确定List泛型
@@ -258,42 +369,55 @@ class _MyHomePageState extends State<MyHomePage> {
           } else if (value[0] is String) {
             generic = 'String';
           } else if (value[0] is Map) {
-            generic =
-                createClass(json.encode(value[0]), key.firstLetterToUpperCase);
+            generic = createClass(json.encode(value[0]),
+                '${key[0].toUpperCase()}${key.substring(1)}');
           }
-          //
         }
 
-        temVar.write('List<$generic>? $key;\n');
+        temVar.write("""List<$generic>? $tempKey;\n""");
 
         // List数据初始化
         // 别名构造函数处理数组的格式
-        var listStr = '''if(json['$key'] != null ){
-         $key = <$generic>[];
-         json['$key'].forEach((v) {
-           $key?.add($generic.fromJson(v));
-           });
-        }''';
+        var listStr = """
+        if (json['$key'] != null) {
+          $tempKey = <$generic>[];
+          json['$key'].forEach((v) {
+            $tempKey?.add($generic.fromJson(v));
+          });
+        }""";
         otherCs.write(listStr);
+        
+        toJsonVar.write("""
+        if ($tempKey != null) {
+          dataMap['$key'] = $tempKey?.map((v) => v.toJson()).toList();
+        }""");
       }
       csVar.write('this.$tempKey,');
     });
 
     var result = StringBuffer();
 
-    result.write('class $className {');
-    result.write(temVar);
-    result.write('$className({$csVar});');
-    result.write('$className.fromJson(Map<String, dynamic> json){');
-    result.write('$otherCs}');
-    result.write('Map<String, dynamic> toJson() {');
-    result.write('final Map<String, dynamic> dataMap = <String, dynamic>{};');
-    result.write('$toJsonVar');
-    result.write('return dataMap;');
-    result.write('}}');
+    result.write("""
+class $className {
+  $temVar
+  $className({
+    $csVar
+  });
+
+  $className.fromJson(Map<String, dynamic> json) {
+    $otherCs
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> dataMap = <String, dynamic>{};
+    $toJsonVar
+    return dataMap;
+  }
+}
+""");
 
     list.add(result.toString());
-    logger.v(result.toString());
+    // logger.v(result.toString());
 
     return className;
   }

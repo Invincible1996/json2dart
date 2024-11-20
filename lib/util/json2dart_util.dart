@@ -61,26 +61,53 @@ class Json2dartUtil {
 
         // List数据初始化
         // 别名构造函数处理数组的格式
-        var listStr = '''if(json[$key]!=null ){
-         $key = <$generic>[];
-         json[$key].forEach((v) {
-           $key?.add($generic.fromJson(v));
-           });
-        }''';
+        var listStr = """
+        if(json['$key'] != null) {
+          $key = <$generic>[];
+          json['$key'].forEach((v) {
+            $key?.add($generic.fromJson(v));
+          });
+        }""";
         otherCs.write(listStr);
       }
       csVar.write('this.$key,');
     });
-    var result = '''class $className {
-      $temVar
-      $className({$csVar});
+    var result = """
+class $className {
+  $temVar
+  $className({
+    $csVar
+  });
 
-      $className.fromJson(Map<String, dynamic> json){
-      $otherCs\n    } 
-      }''';
+  $className.fromJson(Map<String, dynamic> json) {
+    $otherCs
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = <String, dynamic>{};
+    ${_generateToJson(map)}
+    return data;
+  }
+}""";
     // list.add(result);
     logger.v(result);
 
     return className;
+  }
+
+  static String _generateToJson(Map<String, dynamic> map) {
+    var result = StringBuffer();
+    map.forEach((key, value) {
+      if (value is String) {
+        result.write('data[\'$key\'] = this.$key;\n');
+      } else if (value is int) {
+        result.write('data[\'$key\'] = this.$key;\n');
+      } else if (value is Map) {
+        result.write('data[\'$key\'] = this.$key?.toJson();\n');
+      } else if (value is List) {
+        result.write('data[\'$key\'] = this.$key?.map((e) => e.toJson()).toList();\n');
+      }
+    });
+    return result.toString();
   }
 }
