@@ -33,7 +33,8 @@ jobs:
       - name: Build web
         run: |
           flutter build web --release --web-renderer html --base-href "/json2dart/"
-          rm -f build/web/CNAME || true
+          # 确保删除 CNAME 文件
+          rm -f build/web/CNAME
           touch build/web/.nojekyll
       
       - name: Upload Pages artifact
