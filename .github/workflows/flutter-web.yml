@@ -22,17 +22,21 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
       
-      # 确保 base-href 使用正确的 GitHub Pages 路径
-      - name: Build web
+      # 清理所有 CNAME 文件
+      - name: Clean up old domain configurations
         run: |
-          flutter build web --release --base-href /json2dart/
-          
-      # 删除可能存在的 CNAME 文件
-      - name: Remove CNAME if exists
-        run: |
-          rm -f build/web/CNAME || true
+          find . -name "CNAME" -delete
       
-      # 上传构建产物作为 Artifacts
+      - name: Build web
+        run: flutter build web --release
+      
+      # 确保构建目录中没有 CNAME
+      - name: Verify no CNAME exists
+        run: |
+          rm -f build/web/CNAME
+          echo "Checking for any remaining CNAME files..."
+          find . -name "CNAME"
+      
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v3
         with:
@@ -40,19 +44,16 @@ jobs:
           path: build/web/
           retention-days: 30
       
-      # 创建发布压缩包
       - name: Create Release Archive
         run: |
           cd build/web
           zip -r ../../json2dart-web.zip .
           cd ../..
       
-      # 获取时间戳作为版本号
       - name: Get current date
         id: date
         run: echo "BUILD_DATE=$(date +'%Y%m%d_%H%M%S')" >> $GITHUB_ENV
       
-      # 创建发布版本
       - name: Create Release
         uses: ncipollo/release-action@v1
         if: github.ref == 'refs/heads/main'
@@ -63,26 +64,14 @@ jobs:
           name: Build ${{ env.BUILD_DATE }}
           body: |
             JSON to Dart Converter Web Build
-            
             Build Date: ${{ env.BUILD_DATE }}
-            
-            This release contains:
-            - Compiled web application
-            - All build artifacts
-            
-            ## Installation
-            1. Download the zip file
-            2. Extract it to your web server
-            3. Access through your web server
-            
-            ## Direct Usage
-            Online version: https://invincible1996.github.io/json2dart/
       
-      # 部署到 GitHub Pages
+      # 使用 force_orphan 确保完全清理旧的部署
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         if: github.ref == 'refs/heads/main'
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./build/web
-          force_orphan: true  # 这会清除之前的部署历史
+          force_orphan: true  # 完全清理旧的部署历史
+          cname: ''  # 确保不设置 CNAME
