@@ -30,20 +30,9 @@ jobs:
       - name: Build web
         run: |
           flutter build web --release --web-renderer html --base-href "/json2dart/"
-          # 确保没有 CNAME 文件
           rm -f build/web/CNAME || true
-          # 添加一个空的 .nojekyll 文件
           touch build/web/.nojekyll
       
-      # 使用官方的 Pages 设置 action
-      - name: Configure Pages
-        uses: actions/configure-pages@v4
-        with:
-          enablement: true
-          default_source_branch: "main"
-          source_dir: "build/web"
-          static_site_generator: "custom"
-          
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
@@ -54,9 +43,3 @@ jobs:
         uses: actions/deploy-pages@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          
-      - name: Verify Deployment
-        run: |
-          echo "Deployment finished, checking configuration..."
-          curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            "https://api.github.com/repos/${{ github.repository }}/pages"
