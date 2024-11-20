@@ -25,6 +25,31 @@ jobs:
       - name: Build web
         run: flutter build web --release --base-href /json2dart/
       
+      - name: Create Release Archive
+        run: |
+          cd build/web
+          zip -r ../../json2dart-web.zip .
+          cd ../..
+      
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: json2dart-web.zip
+          name: Release ${{ github.ref_name }}
+          body: |
+            JSON to Dart Converter Web Release
+            
+            This release contains the compiled web application.
+            
+            ## Installation
+            1. Download the zip file
+            2. Extract it to your web server
+            3. Access through your web server
+            
+            ## Direct Usage
+            You can also use the online version at: https://invincible1996.github.io/json2dart/
+      
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         if: github.ref == 'refs/heads/main'
