@@ -25,22 +25,43 @@ jobs:
       - name: Build web
         run: flutter build web --release --base-href /json2dart/
       
+      # 上传构建产物作为 Artifacts
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: web-build
+          path: build/web/
+          retention-days: 30
+      
+      # 创建发布压缩包
       - name: Create Release Archive
         run: |
           cd build/web
           zip -r ../../json2dart-web.zip .
           cd ../..
       
+      # 获取时间戳作为版本号
+      - name: Get current date
+        id: date
+        run: echo "BUILD_DATE=$(date +'%Y%m%d_%H%M%S')" >> $GITHUB_ENV
+      
+      # 创建发布版本
       - name: Create Release
-        uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
+        uses: ncipollo/release-action@v1
+        if: github.ref == 'refs/heads/main'
         with:
-          files: json2dart-web.zip
-          name: Release ${{ github.ref_name }}
+          artifacts: "json2dart-web.zip"
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: build_${{ env.BUILD_DATE }}
+          name: Build ${{ env.BUILD_DATE }}
           body: |
-            JSON to Dart Converter Web Release
+            JSON to Dart Converter Web Build
             
-            This release contains the compiled web application.
+            Build Date: ${{ env.BUILD_DATE }}
+            
+            This release contains:
+            - Compiled web application
+            - All build artifacts
             
             ## Installation
             1. Download the zip file
@@ -48,8 +69,12 @@ jobs:
             3. Access through your web server
             
             ## Direct Usage
-            You can also use the online version at: https://invincible1996.github.io/json2dart/
+            Online version: https://invincible1996.github.io/json2dart/
+            
+            ## Changes
+            This is an automated build from the main branch.
       
+      # 部署到 GitHub Pages
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         if: github.ref == 'refs/heads/main'
