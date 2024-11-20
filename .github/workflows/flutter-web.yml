@@ -25,7 +25,7 @@ jobs:
       # 确保 base-href 使用正确的 GitHub Pages 路径
       - name: Build web
         run: |
-          flutter build web --release
+          flutter build web --release --base-href /json2dart/
           
       # 删除可能存在的 CNAME 文件
       - name: Remove CNAME if exists
@@ -76,7 +76,7 @@ jobs:
             3. Access through your web server
             
             ## Direct Usage
-            Online version: https://<your-username>.github.io/json2dart/
+            Online version: https://invincible1996.github.io/json2dart/
       
       # 部署到 GitHub Pages
       - name: Deploy to GitHub Pages
