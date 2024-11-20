@@ -6,6 +6,11 @@ on:
   pull_request:
     branches: [ "main" ]
 
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -22,56 +27,36 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
       
-      # 清理所有 CNAME 文件
-      - name: Clean up old domain configurations
-        run: |
-          find . -name "CNAME" -delete
-      
       - name: Build web
-        run: flutter build web --release
-      
-      # 确保构建目录中没有 CNAME
-      - name: Verify no CNAME exists
         run: |
-          rm -f build/web/CNAME
-          echo "Checking for any remaining CNAME files..."
-          find . -name "CNAME"
+          flutter build web --release --web-renderer html --base-href "/json2dart/"
+          # 确保没有 CNAME 文件
+          rm -f build/web/CNAME || true
+          # 添加一个空的 .nojekyll 文件
+          touch build/web/.nojekyll
       
-      - name: Upload Build Artifacts
-        uses: actions/upload-artifact@v3
+      # 使用官方的 Pages 设置 action
+      - name: Configure Pages
+        uses: actions/configure-pages@v4
         with:
-          name: web-build
-          path: build/web/
-          retention-days: 30
-      
-      - name: Create Release Archive
-        run: |
-          cd build/web
-          zip -r ../../json2dart-web.zip .
-          cd ../..
-      
-      - name: Get current date
-        id: date
-        run: echo "BUILD_DATE=$(date +'%Y%m%d_%H%M%S')" >> $GITHUB_ENV
-      
-      - name: Create Release
-        uses: ncipollo/release-action@v1
-        if: github.ref == 'refs/heads/main'
+          enablement: true
+          default_source_branch: "main"
+          source_dir: "build/web"
+          static_site_generator: "custom"
+          
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          artifacts: "json2dart-web.zip"
-          token: ${{ secrets.GITHUB_TOKEN }}
-          tag: build_${{ env.BUILD_DATE }}
-          name: Build ${{ env.BUILD_DATE }}
-          body: |
-            JSON to Dart Converter Web Build
-            Build Date: ${{ env.BUILD_DATE }}
-      
-      # 使用 force_orphan 确保完全清理旧的部署
+          path: build/web
+          
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        if: github.ref == 'refs/heads/main'
+        id: deployment
+        uses: actions/deploy-pages@v4
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./build/web
-          force_orphan: true  # 完全清理旧的部署历史
-          cname: ''  # 确保不设置 CNAME
+          token: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Verify Deployment
+        run: |
+          echo "Deployment finished, checking configuration..."
+          curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/pages"
