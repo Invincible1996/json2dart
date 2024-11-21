@@ -32,7 +32,7 @@ jobs:
       
       - name: Build web
         run: |
-          flutter build web --release --web-renderer html --base-href "/json2dart"
+          flutter build web --release --web-renderer html --base-href "/json2dart/"
           rm -f build/web/CNAME
           echo "flutter.bigshot.sbs" > build/web/CNAME
           touch build/web/.nojekyll
